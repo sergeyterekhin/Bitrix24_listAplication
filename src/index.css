@@ -1,0 +1,47 @@
+/* #app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  margin-top: 60px;
+} */
+#app{
+  margin: 10px;
+}
+
+.bg-offwhite{
+  background-color: rgb(255, 249, 235);
+}
+
+.spinner-border.inTbSpin{
+  margin: 200px;
+  width: 100px;
+  height: 100px;
+}
+
+button.btn-secondary{
+  background-color: gray;
+}
+
+li.dropdown-item{
+cursor: pointer;
+}
+
+.container.tb{
+  margin-left: 0px;
+  margin-right: 0px;
+}
+
+.list-group-item{
+font-size: 14px;  
+}
+
+.row.date-input{
+font-size: 12px;
+}
+.headTable tr th{
+  font-size: 12px;
+  color: gray;
+  text-align: center;
+}
