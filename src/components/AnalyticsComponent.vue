@@ -1,6 +1,5 @@
 <template>
-<div class="card mb-3">
-    <div class="card-header text-center">Аналитика</div>
+<div class="card mb-3 analytic">
     <div v-if="!analytics" class="card-body pb-0">
         <div class="d-flex justify-content-center m-5">
                 <div class="spinner-border" role="status">
@@ -14,7 +13,7 @@
      <ul class="list-group list-group-flush">
     <li v-for="elementConsaptionAnalytics in elementAnalytics.consuption" class="list-group-item">
         {{elementConsaptionAnalytics.name}}: {{parseFloat(elementConsaptionAnalytics.sum).toFixed(2)}} ₽</li>
-    </ul>       
+    </ul>    
         <!-- <small
         class="d-inline-flex px-2 py-1 mr-5 text-success-emphasis bg-success-subtle border border-success-subtle rounded-2"
         v-for="elementConsaptionAnalytics in elementAnalytics.consuption"

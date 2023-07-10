@@ -1,12 +1,15 @@
 <template>
-   <div class="container-fluid tb">
-        <div class="row">
-            <div class="col-2">
-              <AnalyticsComponent :analytics="AnalyticsComponentValue" />
-              <ModalFormComponent :updateComponentTable="updateComponentTableFunc" :editConsuption="editConsuptionParent"/>
-            </div>
-            <div class=" col-10 card">
+   <div class="container-fluid tb"> 
+    <ModalFormComponent :updateComponentTable="updateComponentTableFunc" :editConsuption="editConsuptionParent" />
+        <div class="row mb-2">
+            <div class="card">
               <TableComponent :updateComponentTable="updateComponentTable" :getInfoAnalytics="getInfoAnalytics" :EditConsup="editConsuptionFunc"/>
+            </div>
+        </div>
+        <div class="row justify-content-end">
+        
+          <div class="col-4 p-0">
+              <AnalyticsComponent :analytics="AnalyticsComponentValue" />
             </div>
         </div>
    </div>

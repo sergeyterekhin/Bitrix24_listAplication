@@ -91,7 +91,7 @@
         'PROPERTY_107':data.actual_date,
         'PROPERTY_109':data.total_consuption,
         'PROPERTY_111':"D_"+data.id_deal,
-        'PROPERTY_113':"C_"+data.id_contact,
+        'PROPERTY_113':data.id_contact,
         'PROPERTY_121':data.target_price,
         }
         Object.defineProperty(param,"FIELDS",{value: tmObj, configurable: true, writable: true, enumerable: true});
@@ -108,6 +108,13 @@
         });
     }
 
+    async function GetCurrentUser(){
+     return await new Promise((resolve,reject)=>{BX24.callMethod('user.current', {}, function(res){
+            resolve(res.data());
+        })
+      });
+    }
+
     async function SendNewConsuption(data){
         var param=Object.assign({},paramsBasicTable);
         var tmObj={
@@ -117,7 +124,7 @@
         'PROPERTY_107':data.actual_date,
         'PROPERTY_109':data.total_consuption,
         'PROPERTY_111':"D_"+data.id_deal,
-        'PROPERTY_113':"C_"+data.id_contact,
+        'PROPERTY_113':data.id_contact,
         'PROPERTY_121':data.target_price,
         }
         Object.defineProperty(param,"FIELDS",{value: tmObj, configurable: true, writable: true, enumerable: true});
@@ -137,7 +144,7 @@
     async function GetContacts(id=null){
     if (id==null) { 
         return await new Promise((resolve, reject) => {
-        BX24.callMethod('crm.contact.list', {},
+        BX24.callMethod('user.get', {},
             (res) => {
                 if (res.error()) {
                     resolve(null);
@@ -149,15 +156,14 @@
     });
     }
     else {
-        id=id.replace("C_","");
         return await new Promise((resolve, reject) => {
-            BX24.callMethod('crm.contact.get', {"ID":id},
+            BX24.callMethod('user.get', {"ID":id},
                 (res) => {
                     if (res.error()) {
                         resolve(null);
                     }
                     else {
-                        resolve(res.data());
+                        resolve(res.data().pop());
                     }
                 });
         });
@@ -194,7 +200,7 @@
         }
     }
 
-export {GetDataListMyWebstor,GetContacts,GetDeals,GetListConsuption,SendNewConsuption,DeleteConsuption,SendUpdateConsuption}
+export {GetDataListMyWebstor,GetContacts,GetDeals,GetListConsuption,SendNewConsuption,DeleteConsuption,SendUpdateConsuption,GetCurrentUser}
 
 // function BXMyWebStoreList() {
 //     let paramsBasicTable={

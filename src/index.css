@@ -28,9 +28,21 @@ li.dropdown-item{
 cursor: pointer;
 }
 
+div.card.analytic .card-body h6{
+  font-size: 13px;
+}
+
+div.card.analytic ul.list-group li{
+  font-size: 12px;
+}
+
 .container.tb{
   margin-left: 0px;
   margin-right: 0px;
+}
+
+table.table td{
+font-size: 13px;
 }
 
 .list-group-item{

@@ -1,11 +1,4 @@
 <template>
-    <button type="button"
-     class="btn btn-outline-success col-12" 
-     data-bs-toggle="modal" 
-     data-bs-target="#staticBackdrop">
-        Добавить
-    </button>
-
     <div 
     class="modal fade"
      id="staticBackdrop"
@@ -90,6 +83,7 @@
                         </div>
                     </div>
 
+                    <div v-if="ListDeal!=null">
                     <label class="form-label">{{ consuption.name_label.id_deal }}</label>
                     <select 
                     class="form-select"
@@ -100,6 +94,7 @@
                         <option v-for="deal in ListDeal" :value="deal.ID">{{ deal.TITLE }}</option>
                     </select>
                     <div class="invalid-feedback">{{ consuption.error.id_deal }}</div>
+                  </div>
 
                     <label class="form-label">{{ consuption.name_label.id_contact }}</label>
                     <select 
@@ -146,9 +141,11 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
-import {GetContacts, GetDeals,GetListConsuption,SendNewConsuption,SendUpdateConsuption} from '../JScript/MyWebStorelist.js';
+import {GetContacts, GetDeals,GetListConsuption,SendNewConsuption,SendUpdateConsuption,GetCurrentUser} from '../JScript/MyWebStorelist.js';
 const ListContact=ref({});
-const ListDeal=ref({});
+const SesionDealID=ref({});
+const SesionUser=ref(null);
+const ListDeal=ref(null);
 const ListTypeConsuption=ref({});
 const flagSend=ref(false);
 const globalStatus=ref();
@@ -230,7 +227,7 @@ consuption.form.plan_date=dtPLANIRUEMAYA[2]+"-"+dtPLANIRUEMAYA[1]+"-"+dtPLANIRUE
 consuption.form.actual_date=dtFAKTICHESKAYA[2]+"-"+dtFAKTICHESKAYA[1]+"-"+dtFAKTICHESKAYA[0]+"T"+dtFAKTICHESKAYA[3]+":"+dtFAKTICHESKAYA[4];
 consuption.form.total_consuption= data.SUMMA_RASKHODA;
 consuption.form.id_deal=data.POLE_SVYAZ_SO_SDELKOY.replace("D_","");
-consuption.form.id_contact=data.OTVETSTVENNYY.replace("C_","");
+consuption.form.id_contact=data.OTVETSTVENNYY;
 }
 
 function checkValidate(){
@@ -255,14 +252,16 @@ function ClearCons(typeClear="all"){
         case "form":
         for(var key in consuption.form){
         consuption.form[key]=null;
-        }  
+        }
+        consuption.form.id_contact=SesionUser.value['ID'];  
         break;
         case "all":
         InEdit.value=false;
         for(var key in consuption.form){
         consuption.form[key]=null;
         consuption.error[key]=null;
-        }  
+        }
+        consuption.form.id_contact=SesionUser.value['ID'];  
         globalStatus.value=null;
         break;
 
@@ -271,9 +270,11 @@ function ClearCons(typeClear="all"){
         for(var key in consuption.form){
         consuption.form[key]=null;
         consuption.error[key]=null;
-        }       
+        }
+        consuption.form.id_contact=SesionUser.value['ID'];       
         break;
-    }    
+    }
+    if(SesionDealID.value.hasOwnProperty("ID")) consuption.form.id_deal=SesionDealID.value["ID"];    
 }
 
 onMounted(()=>{
@@ -284,10 +285,22 @@ updateComponent();
 function updateComponent(){
 GetContacts().then((res)=>{
 ListContact.value=res;
+    GetCurrentUser().then((res)=>{
+        SesionUser.value=res;
+        consuption.form.id_contact=SesionUser.value['ID'];
+    });
 });
+//получение текущенй сделки
+var currentDeal=BX24.placement.info();
+//SesionDealID.value['ID']=1;
+if(currentDeal.options.hasOwnProperty("ID")){
+SesionDealID.value=currentDeal.options;
+consuption.form.id_deal=SesionDealID.value["ID"];
+}else{
 GetDeals().then((res)=>{
     ListDeal.value=res;
 });
+}
 GetListConsuption().then((res)=>{
 ListTypeConsuption.value=res;
 });

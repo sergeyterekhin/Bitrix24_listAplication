@@ -40,6 +40,14 @@
     <li class="dropdown-item" @click="TypeIn='Все'">Все</li>
     <li class="dropdown-item" v-for="elem in ListTypeConsaption" @click="TypeIn=elem.name">{{ elem.name }}</li>
   </ul>
+
+   <button type="button"
+     class="btn btn-outline-success" 
+     data-bs-toggle="modal" 
+     data-bs-target="#staticBackdrop">
+        Добавить
+    </button>
+
   
 </div>
 </template>
@@ -76,20 +84,34 @@ function updateComponent(){
 togle.value=true;
 searchIn.value="";
 GetDataListMyWebstor({'IBLOCK_TYPE_ID': 'lists','IBLOCK_ID': '25'}).then((result)=>{
+//получить текущую сделку
+var currentDeal=BX24.placement.info();
+//currentDeal.options["ID"]=1;
+//ЕСЛИ не удалось получить текущую сделку
+if(!currentDeal.options.hasOwnProperty("ID")){
 ListBXimport.value=result;
 makeAnalytics(result);
+}
+//ЕСЛИ удалось получить текущую сделку 
+else{
+ListBXimport.value=result.filter((elementConsap)=>elementConsap.POLE_SVYAZ_SO_SDELKOY.replace("D_","")==currentDeal.options["ID"]);
+makeAnalytics(result.filter((elementConsap)=>elementConsap.POLE_SVYAZ_SO_SDELKOY.replace("D_","")==currentDeal.options["ID"]),currentDeal.options["ID"]);
+}
 togle.value=!togle.value;    
 });
 }
 
-async function makeAnalytics(result){
+async function makeAnalytics(result,deal=null){
     var dealTime=[];
     await GetDeals().then((res)=>
     res.forEach(elementdealinbx => {
-    dealTime.push({
-    id:elementdealinbx.ID,
-    TITLE:elementdealinbx.TITLE})
-    }));
+    if (deal==null) dealTime.push({id:elementdealinbx.ID, TITLE:elementdealinbx.TITLE});
+     else
+    if (elementdealinbx.ID==deal) { 
+    dealTime.push({id:elementdealinbx.ID, TITLE:elementdealinbx.TITLE});
+    }
+  }));
+     
     await GetListConsuption().then((res)=>{ ListTypeConsaption.value=res; });
 
     dealTime.forEach(elementDeal => {
