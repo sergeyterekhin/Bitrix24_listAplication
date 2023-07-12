@@ -8,7 +8,6 @@
             <th>планируемая дата оплаты</th>
             <th>фактическая дата оплаты</th>
             <th>сумма расхода</th>
-            <th>№ Сделки</th>
             <th>Ответственный</th>
             <th></th>
         </tr>
@@ -35,6 +34,12 @@
   </div>
   <input type="text" class="form-control" aria-label="Small" v-model="searchIn" placeholder="Введите назначение платежа..." aria-describedby="inputGroup-sizing-sm">
   
+  <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">{{ContactIn}}</button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li class="dropdown-item" @click="ContactIn='Все'">Все</li>
+    <li class="dropdown-item" v-for="elem in ListTypeContact" @click="ContactIn=elem.NAME + ' ' + elem.LAST_NAME">{{ elem.NAME + " " + elem.LAST_NAME}}</li>
+  </ul>
+
   <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">{{TypeIn}}</button>
   <ul class="dropdown-menu dropdown-menu-end">
     <li class="dropdown-item" @click="TypeIn='Все'">Все</li>
@@ -54,19 +59,23 @@
 <script setup>
 import { onMounted, ref, defineProps, computed} from 'vue';
 import RowComponent from '../components/RowTableComponent.vue';
-import {GetDataListMyWebstor,GetListConsuption,DeleteConsuption, GetDeals} from '../JScript/MyWebStorelist.js';
+import {GetDataListMyWebstor,GetListConsuption,DeleteConsuption, GetContacts} from '../JScript/MyWebStorelist.js';
 
 const TypeIn=ref("Все");
 const ListTypeConsaption=ref(null);
+
+const ContactIn=ref("Все");
+const ListTypeContact=ref(null);
+
 const searchIn=ref("");
 const togle=ref(true);
 const ListBXimport=ref(null);
 
 const SearchListItem=computed(()=>{
-if (TypeIn.value=="Все") 
-return ListBXimport.value.filter((value)=>value['NAZNACHENIE_PLATEZHA'].toLowerCase().includes(searchIn.value.toLowerCase()));
-else
-return ListBXimport.value.filter((value)=>value['NAZNACHENIE_PLATEZHA'].toLowerCase().includes(searchIn.value.toLowerCase()) && value['TIP_RASKHODA_NAME']==TypeIn.value);
+var TimeList=ListBXimport.value.filter((value)=>value['NAME'].toLowerCase().includes(searchIn.value.toLowerCase()));
+if (TypeIn.value!="Все") TimeList=TimeList.filter((value)=>value['TIP_RASKHODA_NAME']==TypeIn.value);
+if (ContactIn.value!="Все") TimeList=TimeList.filter((value)=>value['FULLNAME']==ContactIn.value);
+  return TimeList;  
 });
 
 onMounted(()=>{
@@ -80,73 +89,114 @@ updateComponent();
 });
 }
 
-function updateComponent(){
-togle.value=true;
-searchIn.value="";
-GetDataListMyWebstor({'IBLOCK_TYPE_ID': 'lists','IBLOCK_ID': '25'}).then((result)=>{
-//получить текущую сделку
-var currentDeal=BX24.placement.info();
-//currentDeal.options["ID"]=1;
-//ЕСЛИ не удалось получить текущую сделку
-if(!currentDeal.options.hasOwnProperty("ID")){
-ListBXimport.value=result;
-makeAnalytics(result);
-}
-//ЕСЛИ удалось получить текущую сделку 
-else{
-ListBXimport.value=result.filter((elementConsap)=>elementConsap.POLE_SVYAZ_SO_SDELKOY.replace("D_","")==currentDeal.options["ID"]);
-makeAnalytics(result.filter((elementConsap)=>elementConsap.POLE_SVYAZ_SO_SDELKOY.replace("D_","")==currentDeal.options["ID"]),currentDeal.options["ID"]);
-}
-togle.value=!togle.value;    
-});
+ function updateComponent(){
+  togle.value=true;
+  searchIn.value="";
+  GetDataListMyWebstor({'IBLOCK_TYPE_ID': 'lists','IBLOCK_ID': '25'}).then((resultConsaptions)=>{
+    var currentDeal=BX24.placement.info(); // получить текущую сделку
+    //currentDeal.options["ID"]=1; // временное объявление сделки 
+    if(currentDeal.options.hasOwnProperty("ID")) // если удалось определить сделку, то отфильтровать расходы по сделке
+      resultConsaptions=resultConsaptions.filter((elementConsap)=> elementConsap.POLE_SVYAZ_SO_SDELKOY.replace("D_","")==currentDeal.options["ID"] ); 
+    //получить ответственного
+    GetContacts().then((resultContacts)=>{
+      resultConsaptions.forEach(OneConsaption => { // перебираем расходы     
+        resultContacts.forEach(OneContact => { // перебираем ответственных
+        if(OneConsaption['OTVETSTVENNYY']==OneContact['ID']) // если нашел, то создать свойство fullname у расхода
+           Object.defineProperty(OneConsaption,'FULLNAME',{
+           value: OneContact['NAME'] +" "+OneContact['LAST_NAME'],
+           configurable: true, 
+           writable: true, 
+          enumerable: true });
+        });
+        //получить тип расхода
+        GetListConsuption().then((resultTypeConsaptions)=>{
+          resultConsaptions.forEach(OneConsaption =>{ //перебираем расходы
+            resultTypeConsaptions.forEach(TypeConsaption => { // перебираем типы расходов
+            if(OneConsaption['TIP_RASKHODA']==TypeConsaption['id']) // если нашел тип расхода по его id создать свойтсво TIP_RASKHODA_NAME
+              Object.defineProperty(OneConsaption,'TIP_RASKHODA_NAME',{
+              value: TypeConsaption['name'],
+              configurable: true, 
+              writable: true, 
+              enumerable: true });
+            });
+          });
+          makeAnalytics(resultConsaptions,resultTypeConsaptions);
+          ListBXimport.value=resultConsaptions;
+          ListTypeConsaption.value=resultTypeConsaptions;
+          ListTypeContact.value=resultContacts;
+          togle.value=false;
+        });
+      }); 
+    });
+  });
 }
 
-async function makeAnalytics(result,deal=null){
-    var dealTime=[];
-    await GetDeals().then((res)=>
-    res.forEach(elementdealinbx => {
-    if (deal==null) dealTime.push({id:elementdealinbx.ID, TITLE:elementdealinbx.TITLE});
-     else
-    if (elementdealinbx.ID==deal) { 
-    dealTime.push({id:elementdealinbx.ID, TITLE:elementdealinbx.TITLE});
-    }
-  }));
+function makeAnalytics(data,TypesConspaptions){
+  var AnalaticsState=[];
+  var allsum=0;
+  TypesConspaptions.forEach(OneTypeConspation=>{
+    var sum=data.reduce((sum,OneConsaption)=>{
+      if (OneConsaption['TIP_RASKHODA']==OneTypeConspation['id'])
+        return sum+parseFloat(OneConsaption['SUMMA_RASKHODA'])
+        else
+        return sum;
+    },0);
+    AnalaticsState.push({
+    name: OneTypeConspation['name'],
+    sum: sum,
+    });
+    allsum+=sum;
+  });
+  AnalaticsState.push({name: "Всего", sum: allsum});
+  myProps.getInfoAnalytics(AnalaticsState);
+}
+
+// async function makeAnalytics2(result,deal=null){
+//     var dealTime=[];
+//     await GetDeals().then((res)=>
+//     res.forEach(elementdealinbx => {
+//     if (deal==null) dealTime.push({id:elementdealinbx.ID, TITLE:elementdealinbx.TITLE});
+//      else
+//     if (elementdealinbx.ID==deal) { 
+//     dealTime.push({id:elementdealinbx.ID, TITLE:elementdealinbx.TITLE});
+//     }
+//   }));
      
-    await GetListConsuption().then((res)=>{ ListTypeConsaption.value=res; });
+//     await GetListConsuption().then((res)=>{ ListTypeConsaption.value=res; });
 
-    dealTime.forEach(elementDeal => {
-    var arrayTypeConsaption=JSON.parse(JSON.stringify(ListTypeConsaption.value));
-    arrayTypeConsaption.forEach(elementTypeConsap => {
-    elementTypeConsap.sum=result.reduce((sum,elemConsap)=>{
-    if(elemConsap.POLE_SVYAZ_SO_SDELKOY.replace("D_","")==elementDeal.id && elemConsap.TIP_RASKHODA==elementTypeConsap.id)
-     return sum+parseFloat(elemConsap.SUMMA_RASKHODA);
-      else return sum;
-    },0);
-    });
-    arrayTypeConsaption.push({
-    name:"Общая Сумма",
-    sum: result.reduce((sum,elemConsap)=>{if (elemConsap.POLE_SVYAZ_SO_SDELKOY.replace("D_","")==elementDeal.id) return sum+parseFloat(elemConsap.SUMMA_RASKHODA); else return sum},0),
-    });
-    Object.defineProperty(elementDeal,"consuption",{value:arrayTypeConsaption,configurable: true, writable: true, enumerable: true});
-    });
-    dealTime.push({
-    TITLE:"Общая информация"
-    });
-    var arrayTypeConsaption=JSON.parse(JSON.stringify(ListTypeConsaption.value));
-    arrayTypeConsaption.forEach(elementTypeConsap => {
-    elementTypeConsap.sum=result.reduce((sum,elemConsap)=>{
-    if(elemConsap.TIP_RASKHODA==elementTypeConsap.id)
-     return sum+parseFloat(elemConsap.SUMMA_RASKHODA);
-      else return sum;
-    },0);
-    });
-    arrayTypeConsaption.push({
-    name:"Общая Сумма",
-    sum: result.reduce((sum,elemConsap)=>sum+parseFloat(elemConsap.SUMMA_RASKHODA),0),
-    });
-    Object.defineProperty(dealTime[dealTime.length-1],"consuption",{value:arrayTypeConsaption,configurable: true, writable: true, enumerable: true});
-    myProps.getInfoAnalytics(dealTime);
-}
+//     dealTime.forEach(elementDeal => {
+//     var arrayTypeConsaption=JSON.parse(JSON.stringify(ListTypeConsaption.value));
+//     arrayTypeConsaption.forEach(elementTypeConsap => {
+//     elementTypeConsap.sum=result.reduce((sum,elemConsap)=>{
+//     if(elemConsap.POLE_SVYAZ_SO_SDELKOY.replace("D_","")==elementDeal.id && elemConsap.TIP_RASKHODA==elementTypeConsap.id)
+//      return sum+parseFloat(elemConsap.SUMMA_RASKHODA);
+//       else return sum;
+//     },0);
+//     });
+//     arrayTypeConsaption.push({
+//     name:"Общая Сумма",
+//     sum: result.reduce((sum,elemConsap)=>{if (elemConsap.POLE_SVYAZ_SO_SDELKOY.replace("D_","")==elementDeal.id) return sum+parseFloat(elemConsap.SUMMA_RASKHODA); else return sum},0),
+//     });
+//     Object.defineProperty(elementDeal,"consuption",{value:arrayTypeConsaption,configurable: true, writable: true, enumerable: true});
+//     });
+//     dealTime.push({
+//     TITLE:"Общая информация"
+//     });
+//     var arrayTypeConsaption=JSON.parse(JSON.stringify(ListTypeConsaption.value));
+//     arrayTypeConsaption.forEach(elementTypeConsap => {
+//     elementTypeConsap.sum=result.reduce((sum,elemConsap)=>{
+//     if(elemConsap.TIP_RASKHODA==elementTypeConsap.id)
+//      return sum+parseFloat(elemConsap.SUMMA_RASKHODA);
+//       else return sum;
+//     },0);
+//     });
+//     arrayTypeConsaption.push({
+//     name:"Общая Сумма",
+//     sum: result.reduce((sum,elemConsap)=>sum+parseFloat(elemConsap.SUMMA_RASKHODA),0),
+//     });
+//     Object.defineProperty(dealTime[dealTime.length-1],"consuption",{value:arrayTypeConsaption,configurable: true, writable: true, enumerable: true});
+//     myProps.getInfoAnalytics(dealTime);
+// }
 
 const myProps = defineProps({getInfoAnalytics: Function, updateComponentTable: Function, EditConsup:Function})
 

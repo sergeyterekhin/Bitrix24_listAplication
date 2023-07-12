@@ -49,6 +49,7 @@
               TMobj[CellsName[propName].CODE]=element[propName][Object.keys(element[propName]).shift()];
             }
             TMobj["ID"]=element.ID;
+            TMobj["NAME"]=element.NAME;
         PrettyObj.push(TMobj);      
         });
         return PrettyObj;
@@ -118,18 +119,16 @@
     async function SendNewConsuption(data){
         var param=Object.assign({},paramsBasicTable);
         var tmObj={
-        "NAME":"null",
+        "NAME": data.target_price,
         'PROPERTY_101':data.type_consuption,
         'PROPERTY_105':data.plan_date,
         'PROPERTY_107':data.actual_date,
         'PROPERTY_109':data.total_consuption,
         'PROPERTY_111':"D_"+data.id_deal,
-        'PROPERTY_113':data.id_contact,
-        'PROPERTY_121':data.target_price,
+        'PROPERTY_123':data.id_contact,
         }
         Object.defineProperty(param,"FIELDS",{value: tmObj, configurable: true, writable: true, enumerable: true});
         Object.defineProperty(param,'ELEMENT_CODE',{value: (new Date().toISOString()).replace(/[-:.]/g,""), configurable: true, writable: true, enumerable: true});
-        console.log(param);
         return await new Promise((resolve,reject)=>{
         BX24.callMethod('lists.element.add',param,(result)=>
         {

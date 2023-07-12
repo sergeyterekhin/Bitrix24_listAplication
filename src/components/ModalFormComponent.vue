@@ -140,7 +140,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue';
+import {onMounted, reactive, ref } from 'vue';
 import {GetContacts, GetDeals,GetListConsuption,SendNewConsuption,SendUpdateConsuption,GetCurrentUser} from '../JScript/MyWebStorelist.js';
 const ListContact=ref({});
 const SesionDealID=ref({});
@@ -284,7 +284,7 @@ updateComponent();
 
 function updateComponent(){
 GetContacts().then((res)=>{
-ListContact.value=res;
+    ListContact.value=res;
     GetCurrentUser().then((res)=>{
         SesionUser.value=res;
         consuption.form.id_contact=SesionUser.value['ID'];
