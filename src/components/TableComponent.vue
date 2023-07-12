@@ -62,14 +62,14 @@ import RowComponent from '../components/RowTableComponent.vue';
 import {GetDataListMyWebstor,GetListConsuption,DeleteConsuption, GetContacts} from '../JScript/MyWebStorelist.js';
 
 const TypeIn=ref("Все");
-const ListTypeConsaption=ref(null);
+const ListTypeConsaption=ref([]);
 
 const ContactIn=ref("Все");
-const ListTypeContact=ref(null);
+const ListTypeContact=ref([]);
 
 const searchIn=ref("");
 const togle=ref(true);
-const ListBXimport=ref(null);
+const ListBXimport=ref([]);
 
 const SearchListItem=computed(()=>{
 var TimeList=ListBXimport.value.filter((value)=>value['NAME'].toLowerCase().includes(searchIn.value.toLowerCase()));
@@ -94,7 +94,7 @@ updateComponent();
   searchIn.value="";
   GetDataListMyWebstor({'IBLOCK_TYPE_ID': 'lists','IBLOCK_ID': '25'}).then((resultConsaptions)=>{
     var currentDeal=BX24.placement.info(); // получить текущую сделку
-    //currentDeal.options["ID"]=1; // временное объявление сделки 
+    currentDeal.options["ID"]=15; // временное объявление сделки 
     if(currentDeal.options.hasOwnProperty("ID")) // если удалось определить сделку, то отфильтровать расходы по сделке
       resultConsaptions=resultConsaptions.filter((elementConsap)=> elementConsap.POLE_SVYAZ_SO_SDELKOY.replace("D_","")==currentDeal.options["ID"] ); 
     //получить ответственного
@@ -128,6 +128,10 @@ updateComponent();
         });
       }); 
     });
+    if(resultConsaptions.length==0) {
+      togle.value=false;
+      makeAnalytics([],[]);
+    }
   });
 }
 
