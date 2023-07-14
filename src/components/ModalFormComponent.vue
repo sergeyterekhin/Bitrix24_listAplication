@@ -290,7 +290,7 @@ GetContacts().then((res)=>{
         consuption.form.id_contact=SesionUser.value['ID'];
     });
 });
-//получение текущенй сделки
+//получение текущей сделки
 var currentDeal=BX24.placement.info();
 //currentDeal.options['ID']=15;
 if(currentDeal.options.hasOwnProperty("ID")){

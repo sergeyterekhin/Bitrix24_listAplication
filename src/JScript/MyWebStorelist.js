@@ -1,49 +1,47 @@
-    let paramsBasicTable={
+    let PARAM_BASIC_TABLE={
         'IBLOCK_TYPE_ID': 'lists',
         'IBLOCK_ID': '25'
     };
 
+    let TABLE_FIELDS=null;
+
+    async function SetBasicProperty(ObjectIblock){
+    PARAM_BASIC_TABLE=ObjectIblock;
+    return await new Promise((resolve,reject)=>{
+    BX24.callMethod('lists.field.get',PARAM_BASIC_TABLE,
+        (result) => {
+          if (result.error()) {
+             TABLE_FIELDS=null;
+               reject("Не удалось подключиться к списку");
+            }
+          else {
+            TABLE_FIELDS=result.data();
+            resolve(true);
+          }
+        });
+    });
+   }
+
     async function GetListConsuption(id=null){
     return await new Promise((resolve,reject)=>{
-            BX24.callMethod('lists.field.get', paramsBasicTable,
-                (res) => {
-                    if (res.error()) {
-                        resolve(null);
-                    }
-                    else {
                         if (id==null) {
                             let tmarray=[];
-                            let ObjPropinArray=Object.keys(res.data()["PROPERTY_101"].DISPLAY_VALUES_FORM);
+                            let ObjPropinArray=Object.keys(TABLE_FIELDS["PROPERTY_101"].DISPLAY_VALUES_FORM);
                             for(let i=0;i<ObjPropinArray.length;i++){
                                 tmarray.push({
                                     id:ObjPropinArray[i],
-                                    name: res.data()["PROPERTY_101"].DISPLAY_VALUES_FORM[ObjPropinArray[i]],
+                                    name: TABLE_FIELDS["PROPERTY_101"].DISPLAY_VALUES_FORM[ObjPropinArray[i]],
                                 });
                             }
                             resolve(tmarray);
                         }
-                        else resolve(res.data()["PROPERTY_101"].DISPLAY_VALUES_FORM[id]);
-                    }
-                });
-        });
+                        else resolve(TABLE_FIELDS["PROPERTY_101"].DISPLAY_VALUES_FORM[id]);
+                    });
     }
 
     async function MakeBeautifulObject(uglyObj) {
         let PrettyObj=[];
-        let CellsName=null;
-        await new Promise((resolve,reject)=>{
-            BX24.callMethod('lists.field.get', paramsBasicTable,
-                (res) => {
-                    if (res.error()) {
-                        resolve(null);
-                    }
-                    else {
-                        resolve(res.data());
-                    }
-                });
-        }).then((res)=>{
-            CellsName=res;
-        }  );
+        let CellsName=JSON.parse(JSON.stringify(TABLE_FIELDS));
         uglyObj.forEach(element => {
         var TMobj=new Object();
             for (let propName in CellsName){
@@ -71,7 +69,7 @@
         });
     }
     async function DeleteConsuption(id){
-        var param=Object.assign({},paramsBasicTable);
+        var param=Object.assign({},PARAM_BASIC_TABLE);
         Object.defineProperty(param,'ELEMENT_ID',{value: id, configurable: true, writable: true, enumerable: true})
         return await new Promise((resolve,reject)=>{
             BX24.callMethod('lists.element.delete',param,(result)=>
@@ -86,7 +84,7 @@
             });    
     }
     async function SendUpdateConsuption(data,id){
-        var param=Object.assign({},paramsBasicTable);
+        var param=Object.assign({},PARAM_BASIC_TABLE);
         var tmObj={
         "NAME":data.target_price,
         'PROPERTY_101':data.type_consuption,
@@ -98,7 +96,6 @@
         }
         Object.defineProperty(param,"FIELDS",{value: tmObj, configurable: true, writable: true, enumerable: true});
         Object.defineProperty(param,'ELEMENT_ID',{value: id, configurable: true, writable: true, enumerable: true});
-        console.log(param);
         return await new Promise((resolve,reject)=>{
         BX24.callMethod('lists.element.update',param,(result)=>
         {
@@ -118,7 +115,7 @@
     }
 
     async function SendNewConsuption(data){
-        var param=Object.assign({},paramsBasicTable);
+        var param=Object.assign({},PARAM_BASIC_TABLE);
         var tmObj={
         "NAME": data.target_price,
         'PROPERTY_101':data.type_consuption,
@@ -200,20 +197,27 @@
         }
     }
 
-export {GetDataListMyWebstor,GetContacts,GetDeals,GetListConsuption,SendNewConsuption,DeleteConsuption,SendUpdateConsuption,GetCurrentUser}
+export {GetDataListMyWebstor,
+    GetContacts,
+    GetDeals,
+    GetListConsuption,
+    SendNewConsuption,
+    DeleteConsuption,
+    SendUpdateConsuption,
+    GetCurrentUser, SetBasicProperty}
 
 // function BXMyWebStoreList() {
-//     let paramsBasicTable={
+//     let PARAM_BASIC_TABLE={
 //         'IBLOCK_TYPE_ID': 'lists',
 //         'IBLOCK_ID': '25'
 //     };
-//     this.changeBasicParam=(obj)=> paramsBasicTable=obj;
+//     this.changeBasicParam=(obj)=> PARAM_BASIC_TABLE=obj;
 
 //     async function MakeBeautifulObject(uglyObj) {
 //         let PrettyObj=[];
 //         let CellsName=null;
 //         await new Promise((resolve,reject)=>{
-//             BX24.callMethod('lists.field.get', paramsBasicTable,
+//             BX24.callMethod('lists.field.get', PARAM_BASIC_TABLE,
 //                 (res) => {
 //                     if (res.error()) {
 //                         resolve(null);
