@@ -41,7 +41,9 @@
                         resolve(res.data());
                     }
                 });
-        }).then((res)=> CellsName=res );
+        }).then((res)=>{
+            CellsName=res;
+        }  );
         uglyObj.forEach(element => {
         var TMobj=new Object();
             for (let propName in CellsName){
@@ -86,14 +88,13 @@
     async function SendUpdateConsuption(data,id){
         var param=Object.assign({},paramsBasicTable);
         var tmObj={
-        "NAME":"null",
+        "NAME":data.target_price,
         'PROPERTY_101':data.type_consuption,
         'PROPERTY_105':data.plan_date,
         'PROPERTY_107':data.actual_date,
         'PROPERTY_109':data.total_consuption,
         'PROPERTY_111':"D_"+data.id_deal,
-        'PROPERTY_113':data.id_contact,
-        'PROPERTY_121':data.target_price,
+        'PROPERTY_123':data.id_contact,
         }
         Object.defineProperty(param,"FIELDS",{value: tmObj, configurable: true, writable: true, enumerable: true});
         Object.defineProperty(param,'ELEMENT_ID',{value: id, configurable: true, writable: true, enumerable: true});

@@ -94,7 +94,7 @@ updateComponent();
   searchIn.value="";
   GetDataListMyWebstor({'IBLOCK_TYPE_ID': 'lists','IBLOCK_ID': '25'}).then((resultConsaptions)=>{
     var currentDeal=BX24.placement.info(); // получить текущую сделку
-    currentDeal.options["ID"]=15; // временное объявление сделки 
+    //currentDeal.options["ID"]=15; // временное объявление сделки 
     if(currentDeal.options.hasOwnProperty("ID")) // если удалось определить сделку, то отфильтровать расходы по сделке
       resultConsaptions=resultConsaptions.filter((elementConsap)=> elementConsap.POLE_SVYAZ_SO_SDELKOY.replace("D_","")==currentDeal.options["ID"] ); 
     //получить ответственного

@@ -220,7 +220,7 @@ const SendForm=()=>{
 function EditData(data){
 InEdit.value=data.ID;
 consuption.form.type_consuption= data.TIP_RASKHODA;
-consuption.form.target_price= data.NAZNACHENIE_PLATEZHA;
+consuption.form.target_price= data.NAME;
 var dtPLANIRUEMAYA=data.PLANIRUEMAYA_DATA_OPLATY.split(/[.: ]+/);
 var dtFAKTICHESKAYA=data.FAKTICHESKAYA_DATA_OPLATY.split(/[.: ]+/);
 consuption.form.plan_date=dtPLANIRUEMAYA[2]+"-"+dtPLANIRUEMAYA[1]+"-"+dtPLANIRUEMAYA[0]+"T"+dtPLANIRUEMAYA[3]+":"+dtPLANIRUEMAYA[4];
@@ -292,7 +292,7 @@ GetContacts().then((res)=>{
 });
 //получение текущенй сделки
 var currentDeal=BX24.placement.info();
-//SesionDealID.value['ID']=1;
+//currentDeal.options['ID']=15;
 if(currentDeal.options.hasOwnProperty("ID")){
 SesionDealID.value=currentDeal.options;
 consuption.form.id_deal=SesionDealID.value["ID"];
